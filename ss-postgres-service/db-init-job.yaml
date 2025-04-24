@@ -1,0 +1,25 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-init
+spec:
+  template:
+    spec:
+      containers:
+        - name: db-init
+          image: postgres:17
+          command: ["bash", "-c"]
+          args:
+            - |
+              echo 'Waiting for Postgres to be ready…';
+              until pg_isready -h postgres -U postgres -p 5433; do sleep 2; done;
+              echo 'Creating databases…';
+              psql -h postgres -U postgres -p 5433 -c "CREATE DATABASE studentdb;";
+              psql -h postgres -U postgres -p 5433 -c "CREATE DATABASE facultydb;";
+              psql -h postgres -U postgres -p 5433 -c "CREATE DATABASE coursedb;";
+              psql -h postgres -U postgres -p 5433 -c "CREATE DATABASE enrollmentdb;";
+              echo 'Databases created.';
+          env:
+            - name: PGPASSWORD
+              value: root
+      restartPolicy: OnFailure

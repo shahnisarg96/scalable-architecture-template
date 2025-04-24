@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: faculty-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: faculty
+  template:
+    metadata:
+      labels:
+        app: faculty
+    spec:
+      containers:
+        - name: faculty
+          image: faculty-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"                 
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: faculty-service
+spec:
+  type: ClusterIP
+  selector:
+    app: faculty
+  ports:
+    - port: 8084
+      targetPort: 8084

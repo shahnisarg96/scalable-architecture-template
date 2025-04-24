@@ -1,0 +1,14 @@
+# ignore dependencies (we’ll install fresh inside the image)
+node_modules
+
+# ignore build output
+dist
+
+# VCS, local env, IDE files
+.git
+.gitignore
+.env
+.DS_Store
+
+# Docker Compose or anything else you don’t need in the image
+docker-compose*.yml

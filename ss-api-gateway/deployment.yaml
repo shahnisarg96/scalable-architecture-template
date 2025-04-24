@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: ss-api-gateway:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: REQUEST_TIMEOUT
+              value: "10000"
+            - name: RATE_LIMIT_POINTS
+              value: "10"
+            - name: RATE_LIMIT_DURATION
+              value: "60" 
+            - name: MAX_RETRIES
+              value: "3"
+            - name: AUTH_SERVICE_URL
+              value: "http://auth-service:8081/"
+            - name: STUDENT_SERVICE_URL
+              value: "http://student-service:8082/"
+            - name: COURSE_SERVICE_URL
+              value: "http://course-service:8083/"
+            - name: FACULTY_SERVICE_URL
+              value: "http://faculty-service:8084/"
+            - name: ENROLLMENT_SERVICE_URL
+              value: "http://enrollment-service:8085/"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway-service
+spec:
+  type: NodePort
+  selector:
+    app: api-gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080

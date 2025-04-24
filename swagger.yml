@@ -1,0 +1,756 @@
+openapi: 3.1.0
+info:
+  title: Scalable Services Assignment
+  description: OpenAPI 3.1.0 specification for the Scalable Services Assignment APIs, generated from a Postman collection.
+  version: 1.0.0
+servers:
+  - url: http://localhost:30080
+    description: "Local API Gateway" 
+tags:
+  - name: Auth
+    description: Authentication and user account management endpoints.
+  - name: Students
+    description: Endpoints for managing student records.
+  - name: Course
+    description: Endpoints for managing course records.
+  - name: Faculty
+    description: Endpoints for managing faculty records and course assignments.
+  - name: Enrollment
+    description: Endpoints for managing student enrollments in courses.
+paths:
+  /health:
+    get:
+      tags:
+        - Health
+      summary: Health Check
+      description: Check the health status of the API.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+              example:
+                status: "UP"
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Login
+      description: Authenticate a user and return a JWT token.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
+            example:
+              email: user@example.com
+              password: User@123
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+              example:
+                token: eyJh...<JWT>...VciOi
+      security: []  # No auth needed for login
+  /auth/signup:
+    post:
+      tags:
+        - Auth
+      summary: Signup
+      description: Register a new user account.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+                role:
+                  type: string
+              required:
+                - email
+                - password
+                - role
+            example:
+              email: admin2@example.com
+              password: admin123
+              role: ADMIN
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: User registered successfully.
+      security: []  # No auth needed for signup
+  /students:
+    get:
+      tags:
+        - Students
+      summary: Get Students
+      description: Retrieve all students.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+              example:
+                - id: 1
+                  name: John Doe
+                  age: 20
+                  email: john.doe@example.com
+                  department: Computer Science
+                  year: 3
+                - id: 2
+                  name: Jane Doe
+                  age: 22
+                  email: jane.doe@example.com
+                  department: Mathematics
+                  year: 4
+    post:
+      tags:
+        - Students
+      summary: Create Student
+      description: Create a new student.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+            example:
+              name: John Doe
+              age: 20
+              email: john.doe@example.com
+              department: Computer Science
+              year: 3
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 10
+                name: John Doe
+                age: 20
+                email: john.doe@example.com
+                department: Computer Science
+                year: 3
+  /students/{studentId}:
+    get:
+      tags:
+        - Students
+      summary: Get Student by ID
+      description: Retrieve a specific student by ID.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the student.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 1
+                name: John Doe
+                age: 20
+                email: john.doe@example.com
+                department: Computer Science
+                year: 3
+    put:
+      tags:
+        - Students
+      summary: Update Student
+      description: Update an existing student by ID.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the student.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Student'
+            example:
+              name: Jane Doe
+              email: jane.doe@example.com
+              department: Mathematics
+              year: 4
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+              example:
+                id: 1
+                name: Jane Doe
+                age: 20
+                email: jane.doe@example.com
+                department: Mathematics
+                year: 4
+    delete:
+      tags:
+        - Students
+      summary: Delete Student
+      description: Delete a student by ID.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the student.
+      responses:
+        '204':
+          description: Successful operation (no content)
+  /courses:
+    get:
+      tags:
+        - Course
+      summary: Get Courses
+      description: Retrieve all courses.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+              example:
+                - id: 1
+                  name: Data Structures
+                  code: CS101
+                  department: Computer Science
+                  credits: 4
+                  semester: Fall 2025
+    post:
+      tags:
+        - Course
+      summary: Create Course
+      description: Create a new course.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+            example:
+              name: Data Structures
+              code: CS101
+              department: Computer Science
+              credits: 4
+              semester: Fall 2025
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+              example:
+                id: 10
+                name: Data Structures
+                code: CS101
+                department: Computer Science
+                credits: 4
+                semester: Fall 2025
+  /courses/{courseId}:
+    get:
+      tags:
+        - Course
+      summary: Get Course by ID
+      description: Retrieve a specific course by ID.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+              example:
+                id: 1
+                name: Data Structures
+                code: CS101
+                department: Computer Science
+                credits: 4
+                semester: Fall 2025
+    put:
+      tags:
+        - Course
+      summary: Update Course
+      description: Update an existing course by ID.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Course'
+            example:
+              name: Advanced Data Structures
+              code: CS201
+              department: Computer Science
+              credits: 5
+              semester: Spring 2026
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Course'
+              example:
+                id: 1
+                name: Advanced Data Structures
+                code: CS201
+                department: Computer Science
+                credits: 5
+                semester: Spring 2026
+    delete:
+      tags:
+        - Course
+      summary: Delete Course
+      description: Delete a course by ID.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      responses:
+        '204':
+          description: Successful operation (no content)
+  /faculty:
+    get:
+      tags:
+        - Faculty
+      summary: Get Faculties
+      description: Retrieve all faculties.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Faculty'
+              example:
+                - id: 1
+                  name: Dr. John Smith
+                  email: john.smith@example.com
+                  department: Computer Science
+                  designation: Professor
+    post:
+      tags:
+        - Faculty
+      summary: Create Faculty
+      description: Create a new faculty.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Faculty'
+            example:
+              name: Dr. John Smith
+              email: john.smith@example.com
+              department: Computer Science
+              designation: Professor
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Faculty'
+              example:
+                id: 5
+                name: Dr. John Smith
+                email: john.smith@example.com
+                department: Computer Science
+                designation: Professor
+  /faculty/{facultyId}:
+    get:
+      tags:
+        - Faculty
+      summary: Get Faculty by ID
+      description: Retrieve a specific faculty by ID.
+      parameters:
+        - name: facultyId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the faculty.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Faculty'
+              example:
+                id: 1
+                name: Dr. John Smith
+                email: john.smith@example.com
+                department: Computer Science
+                designation: Professor
+    put:
+      tags:
+        - Faculty
+      summary: Update Faculty
+      description: Update an existing faculty by ID.
+      parameters:
+        - name: facultyId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the faculty.
+      requestBody:
+        description: JSON payload for the request.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Faculty'
+            example:
+              name: Dr. Jane Doe
+              email: jane.doe@example.com
+              department: Mathematics
+              designation: Associate Professor
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Faculty'
+              example:
+                id: 1
+                name: Dr. Jane Doe
+                email: jane.doe@example.com
+                department: Mathematics
+                designation: Associate Professor
+    delete:
+      tags:
+        - Faculty
+      summary: Delete Faculty
+      description: Delete a faculty by ID.
+      parameters:
+        - name: facultyId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the faculty.
+      responses:
+        '204':
+          description: Successful operation (no content)
+  /faculty/{facultyId}/assign-course/{courseId}:
+    post:
+      tags:
+        - Faculty
+      summary: Assign Course to Faculty
+      description: Assign a course to a faculty member.
+      parameters:
+        - name: facultyId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the faculty.
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: Course assigned to faculty successfully.
+  /faculty/{facultyId}/courses:
+    get:
+      tags:
+        - Faculty
+      summary: Get Assigned Courses to Faculty
+      description: Retrieve all courses assigned to a specific faculty member.
+      parameters:
+        - name: facultyId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the faculty.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+              example:
+                - id: 1
+                  name: Data Structures
+                  code: CS101
+                  department: Computer Science
+                  credits: 4
+                  semester: Fall 2025
+  /enrollment/{studentId}/course/{courseId}:
+    post:
+      tags:
+        - Enrollment
+      summary: Enroll Student in Course
+      description: Enroll a student in a course.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the student.
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      responses:
+        '201':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: Student enrolled in course successfully.
+  /enrollment/student/{studentId}:
+    get:
+      tags:
+        - Enrollment
+      summary: Get all Courses for Student
+      description: Retrieve all courses that a specific student is enrolled in.
+      parameters:
+        - name: studentId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the student.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Course'
+              example:
+                - id: 1
+                  name: Data Structures
+                  code: CS101
+                  department: Computer Science
+                  credits: 4
+                  semester: Fall 2025
+                - id: 2
+                  name: Algorithms
+                  code: CS102
+                  department: Computer Science
+                  credits: 4
+                  semester: Spring 2026
+  /enrollment/course/{courseId}:
+    get:
+      tags:
+        - Enrollment
+      summary: Get all Students enrolled in course
+      description: Retrieve all students enrolled in a specific course.
+      parameters:
+        - name: courseId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: The ID of the course.
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Student'
+              example:
+                - id: 1
+                  name: John Doe
+                  age: 20
+                  email: john.doe@example.com
+                  department: Computer Science
+                  year: 3
+                - id: 2
+                  name: Jane Doe
+                  age: 22
+                  email: jane.doe@example.com
+                  department: Mathematics
+                  year: 4
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Enter your bearer token in the format **Bearer <token>**
+  schemas:
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        age:
+          type: integer
+        email:
+          type: string
+          format: email
+        department:
+          type: string
+        year:
+          type: integer
+      required:
+        - name
+        - age
+        - email
+        - department
+        - year
+      description: A student record.
+    Course:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        code:
+          type: string
+        department:
+          type: string
+        credits:
+          type: integer
+        semester:
+          type: string
+      required:
+        - name
+        - code
+        - department
+        - credits
+        - semester
+      description: A course record.
+    Faculty:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        department:
+          type: string
+        designation:
+          type: string
+      required:
+        - name
+        - email
+        - department
+        - designation
+      description: A faculty record.
+security:
+  - BearerAuth: []

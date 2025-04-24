@@ -1,0 +1,88 @@
+services:
+  postgres:
+    image: postgres:17
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  db-init:
+    image: postgres:17            
+    depends_on:
+      - postgres
+    environment:
+      PGPASSWORD: root
+    entrypoint: [ "bash", "-c", "
+      echo 'Waiting for Postgres to be ready…'; \
+      until pg_isready -h postgres -U postgres; do sleep 2; done; \
+      echo 'Creating databases…'; \
+      psql -h postgres -U postgres -c \"CREATE DATABASE studentdb;\"; \
+      psql -h postgres -U postgres -c \"CREATE DATABASE facultydb;\"; \
+      psql -h postgres -U postgres -c \"CREATE DATABASE coursedb;\"; \
+      psql -h postgres -U postgres -c \"CREATE DATABASE enrollmentdb;\"; \
+      echo 'Databases created.'; \
+      " ]
+    restart: "no"
+
+  # auth-service:
+  #   build: ./ss-auth-service
+  #   expose:
+  #     - "8081"    
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:root@postgres:5432/authdb
+  #   depends_on:
+  #     - db-init
+  #   command: >
+  #     sh -c "
+  #     sleep 5 &&
+  #     npm run prisma:deploy &&
+  #     npm run prisma:seed &&
+  #     npm run start
+  #     "
+
+  # student-service:
+  #   build: ./UMS-Student-Service
+  #   expose:
+  #     - "8082"
+  #   depends_on:
+  #     - db-init
+
+  # course-service:
+  #   build: ./UMS-Course-Service
+  #   expose:
+  #     - "8083"
+  #   depends_on:
+  #     - db-init
+
+  # faculty-service:
+  #   build: ./UMS-Faculty-Service
+  #   expose:
+  #     - "8084"
+  #   depends_on:
+  #     - db-init
+
+  # enrollment-service:
+  #   build: ./UMS-Enrollment-Service
+  #   expose:
+  #     - "8085"
+  #   depends_on:
+  #     - db-init
+
+  # api-gateway:
+  #   build: ./ss-api-gateway
+  #   ports:
+  #     - "8080:8080"
+  #   depends_on:
+  #     - db-init
+  #     - student-service
+  #     - faculty-service
+  #     - course-service
+  #     - enrollment-service
+
+volumes:
+  pgdata:
