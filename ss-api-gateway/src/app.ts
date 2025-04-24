@@ -26,7 +26,12 @@ app.use(helmet());
 app.use(express.json());
 
 // Middleware: Rate limiting
-app.use(rateLimiter);
+app.use((req, res, next) => {
+    if (req.path.startsWith('/swagger-ui')) {
+        return next(); // Skip rate limiter for Swagger
+    }
+    rateLimiter(req, res, next);
+});
 
 // Middleware: Custom timeout handler
 app.use((_req, res, next) => {
@@ -46,7 +51,12 @@ app.use((req, res, next) => {
 });
 
 // Middleware: Request and response logging
-app.use(requestResponseLogger);
+app.use((req, res, next) => {
+    if (req.path.startsWith('/swagger-ui')) {
+        return next(); // Skip logging for Swagger
+    }
+    requestResponseLogger(req, res, next);
+});
 
 // Register all routes
 setupRoutes(app);
