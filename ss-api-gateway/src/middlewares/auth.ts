@@ -2,18 +2,11 @@ import { Request, Response, NextFunction } from 'express';
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-/**
- * Get the current file and directory paths.
- */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /**
  * Load the public key for verifying JWT tokens.
  */
-const publicKey = fs.readFileSync(path.join(__dirname, '../../keys/public.pem'), 'utf8');
+const publicKey = fs.readFileSync(path.resolve('/app/keys/public.pem'), 'utf8');
 
 /**
  * Extend the Express Request type to include the `user` property.

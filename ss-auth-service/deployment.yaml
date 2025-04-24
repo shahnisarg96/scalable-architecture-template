@@ -35,6 +35,14 @@ spec:
           command: [ "sh", "-c" ]
           args:
             - sleep 5 && npm run prisma:deploy && npm run prisma:seed && npm run start
+          volumeMounts:
+            - name: jwt-keys
+              mountPath: /app/keys
+              readOnly: true
+      volumes:
+        - name: jwt-keys
+          secret:
+            secretName: jwt-keys
 ---
 apiVersion: v1
 kind: Service

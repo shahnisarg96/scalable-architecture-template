@@ -4,8 +4,7 @@ import path from 'path'
 import { User } from '../../prisma/generated/prisma-client';
 import { config } from '../config/index.js'
 
-const __dirname = import.meta.dirname;
-const privateKey = fs.readFileSync(path.resolve(__dirname, '../../keys/private.pem'), 'utf8')
+const privateKey = fs.readFileSync(path.resolve('/app/keys/private.pem'), 'utf8');
 
 /**
  * Generates a JSON Web Token (JWT) for a given user.

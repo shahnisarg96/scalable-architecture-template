@@ -10,6 +10,7 @@ A microservices-based architecture designed to handle scalable and modular servi
 - [Architecture](#architecture)
 - [Services](#services)
 - [Setup and Installation](#setup-and-installation)
+- [Troubleshooting](#troubleshooting)
 - [API Documentation](#api-documentation)
 
 ---
@@ -176,18 +177,27 @@ This section provides step-by-step instructions to set up Minikube and `kubectl`
 
 1. **Starts Minikube** (if not already running).
 2. **Switches Docker to Minikube's Daemon** to build images directly in Minikube's environment.
-3. **Builds Docker Images** for all microservices without using the cache.
-4. **Deploys PostgreSQL** and waits for it to be ready.
-5. **Initializes the Database Schema** using a Kubernetes Job.
-6. **Deploys Core Microservices**:
+3. **Generates RSA Keys for JWT**:
+   - The script generates a private-public key pair (`private.pem` and `public.pem`) for JWT signing and verification using the RS256 algorithm.
+   - These keys are stored in a `keys` directory.
+4. **Creates Kubernetes Secrets for JWT Keys**:
+   - The generated keys are securely stored as Kubernetes secrets (`jwt-keys`) and mounted into the `ss-auth-service` and `ss-api-gateway` pods.
+5. **Builds Docker Images**:
+   - Builds Docker images for all microservices without using the cache.
+6. **Deploys PostgreSQL**:
+   - Deploys the PostgreSQL database and waits for it to be ready.
+7. **Initializes the Database Schema**:
+   - Runs a Kubernetes Job to initialize the database schema.
+8. **Deploys Core Microservices**:
    - Authentication Service
    - Student Service
    - Faculty Service
    - Course Service
    - Enrollment Service
-7. **Deploys the API Gateway**.
-8. **Sets Up Port Forwarding**:
-   - Forwards the API Gateway service to `localhost:30080`.
+9. **Deploys the API Gateway**:
+   - Deploys the API Gateway and waits for it to be ready.
+10. **Sets Up Port Forwarding**:
+    - Forwards the API Gateway service to `localhost:30080`.
 
 ---
 
@@ -211,9 +221,19 @@ This section provides step-by-step instructions to set up Minikube and `kubectl`
      curl http://localhost:30080/health
      ```
 
+4. **Verify JWT Keys**:
+   - Ensure the `jwt-keys` secret is created:
+     ```bash
+     kubectl get secrets
+     ```
+   - Check that the keys are mounted in the `ss-auth-service` pod:
+     ```bash
+     kubectl exec -it <pod-name> -- ls /app/keys
+     ```
+
 ---
 
-### Troubleshooting
+## Troubleshooting
 
 1. **Check Logs**:
    - If a service fails, check its logs:

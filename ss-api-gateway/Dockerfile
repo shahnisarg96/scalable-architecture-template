@@ -15,8 +15,5 @@ COPY . .
 # Build the TypeScript code
 RUN npm run build
 
-# Copy public keys for JWT verification
-COPY keys/public.pem /usr/src/app/dist/keys/public.pem
-
 # Run
 CMD [ "node", "dist/server.js" ]
