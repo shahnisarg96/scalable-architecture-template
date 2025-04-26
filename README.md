@@ -261,7 +261,7 @@ This section provides step-by-step instructions to set up Minikube and `kubectl`
 ### Swagger Documentation
 The Swagger documentation for the microservices is available at the following endpoint once the services are running:
 ```
-http://localhost:30080/swagger
+http://localhost:30080/swagger-ui
 ```
 This provides an interactive API documentation interface for testing and exploring the available endpoints.
 
