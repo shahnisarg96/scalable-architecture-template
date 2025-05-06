@@ -1,14 +1,15 @@
 import winston from "winston";
+import { KafkaTransport } from "./kafkaProducer.js";
 
 /**
- * A logger instance configured using Winston library.
- * 
- * The logger is set to the 'info' level by default and uses JSON formatting.
- * It outputs logs to both the console and a file located at 'logs/app.log'.
+ * Logger instance configured with multiple transports for logging messages.
  * 
  * Transports:
- * - Console: Logs are displayed in the console.
- * - File: Logs are written to 'logs/app.log'.
+ * - Console: Logs messages to the console.
+ * - File: Logs messages to a file located at `logs/app.log`.
+ * - KafkaTransport: Sends log messages to a Kafka topic named `app-logs`.
+ * 
+ * The logger uses the `info` level by default and formats messages in JSON format.
  * 
  * @constant
  */
@@ -18,5 +19,6 @@ export const logger = winston.createLogger({
     transports: [
         new winston.transports.Console(),
         new winston.transports.File({ filename: 'logs/app.log' }),
+        new KafkaTransport({ topic: 'app-logs' }),
     ],
 });

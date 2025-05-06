@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: auth
-          image: ss-auth-service
+          image: ss-auth-service:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

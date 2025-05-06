@@ -49,7 +49,7 @@ eval "$(minikube docker-env)"
 echo "✅ Docker daemon is now using the Minikube environment."
 
 # 6. (Optional) Create a Kubernetes namespace for the application
-NAMESPACE="university-ms"
+NAMESPACE="ums"
 echo "🏷️ Creating namespace: $NAMESPACE if it doesn't exist..."
 kubectl create namespace "$NAMESPACE" 2>/dev/null || true
 echo "✅ Namespace '$NAMESPACE' created (if it didn't exist)."
@@ -89,6 +89,8 @@ docker build -t course-service ./UMS-Course-Service
 echo "✅ Docker image 'course-service' built."
 docker build -t enrollment-service ./UMS-Enrollment-Service
 echo "✅ Docker image 'enrollment-service' built."
+docker build -t ss-audit-service ./ss-audit-service
+echo "✅ Docker image 'ss-audit-service' built."
 
 # 11. Deploy PostgreSQL database in the specified namespace
 echo "📦 Deploying PostgreSQL database in namespace: $NAMESPACE..."
@@ -108,7 +110,18 @@ echo "⏳ Waiting for db-init job to complete in namespace: $NAMESPACE..."
 kubectl wait --for=condition=complete job/db-init -n "$NAMESPACE" --timeout=120s
 echo "✅ Database schema initialized successfully in namespace '$NAMESPACE'."
 
-# 14. Deploy core microservices in the specified namespace
+# 14. Deploy Kafka in the specified namespace
+echo "📦 Deploying Kafka in namespace: $NAMESPACE..."
+kubectl apply -f ss-kafka-service/ -n "$NAMESPACE"
+# Wait for Zookeeper pods to be ready first
+kubectl wait --for=condition=ready pod -l app=zookeeper -n "$NAMESPACE" --timeout=300s
+# Wait for Kafka pods to be ready after Zookeeper is ready
+kubectl wait --for=condition=ready pod -l app=kafka -n "$NAMESPACE" --timeout=300s
+echo "✅ Zookeeper service deployment started in namespace '$NAMESPACE'."
+echo "✅ Kafka service deployment started in namespace '$NAMESPACE'."
+sleep 30; # Wait for Kafka to be fully ready
+
+# 15. Deploy core microservices in the specified namespace
 echo "🚀 Deploying core microservices in namespace: $NAMESPACE..."
 kubectl apply -f ss-auth-service/deployment.yaml -n "$NAMESPACE"
 echo "✅ Auth service deployment started in namespace '$NAMESPACE'."
@@ -121,22 +134,36 @@ echo "✅ Faculty service deployment started in namespace '$NAMESPACE'."
 kubectl apply -f UMS-Enrollment-Service/deployment.yaml -n "$NAMESPACE"
 echo "✅ Enrollment service deployment started in namespace '$NAMESPACE'."
 
-# 15. Deploy API Gateway in the specified namespace
+# 16. Deploy API Gateway in the specified namespace
 echo "🌐 Deploying API Gateway in namespace: $NAMESPACE..."
 kubectl apply -f ss-api-gateway/deployment.yaml -n "$NAMESPACE"
 echo "✅ API Gateway deployment started in namespace '$NAMESPACE'."
+kubectl wait --for=condition=ready pod -l app=api-gateway -n "$NAMESPACE" --timeout=120s
+# 15.a Poll until the topic exists
+echo "⏳ Waiting for topic '${KAFKA_TOPIC:-app-logs}'…"
+for i in {1..30}; do
+    if kubectl exec deploy/kafka -n $NAMESPACE -- \
+        kafka-topics.sh --bootstrap-server localhost:9092 --list \
+        | grep -q "${KAFKA_TOPIC:-app-logs}"; then
+    echo "✅ Topic is present."
+    break
+    fi
+    sleep 2
+done
+kubectl apply -f ss-audit-service/deployment.yaml -n "$NAMESPACE"
+echo "✅ Audit service deployment started in namespace '$NAMESPACE'."
 
-# 16. Print all services in the specified namespace
+# 17. Print all services in the specified namespace
 echo -e "${GREEN}✅ All services deployed in namespace: $NAMESPACE. Services:${NC}"
 kubectl get services -n "$NAMESPACE"
 
-# 17. Print all pods in the specified namespace
+# 18. Print all pods in the specified namespace
 echo -e "${GREEN}✅ All pods deployed in namespace: $NAMESPACE. Pods:${NC}"
 kubectl get pods -n "$NAMESPACE"
 
 echo "🎉 Deployment complete!"
 
-# 18. Port-forward the API Gateway service to localhost:30080 in the specified namespace
+# 19. Port-forward the API Gateway service to localhost:30080 in the specified namespace
 echo "⏳ Waiting for API Gateway pod to be ready in namespace: $NAMESPACE..."
 kubectl wait --for=condition=ready pod -l app=api-gateway -n "$NAMESPACE" --timeout=120s
 echo "🔁 Setting up port forwarding from localhost:30080 to api-gateway-service in namespace: $NAMESPACE..."

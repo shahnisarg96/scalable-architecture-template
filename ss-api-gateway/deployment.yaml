@@ -39,6 +39,12 @@ spec:
               value: "http://faculty-service:8084/"
             - name: ENROLLMENT_SERVICE_URL
               value: "http://enrollment-service:8085/"
+            - name: KAFKA_URL
+              value: kafka.ums.svc.cluster.local:9092
+            - name: KAFKA_CLIENT_ID
+              value: api-gateway  
+            - name: KAFKA_TOPIC
+              value: "app-logs"              
           resources:
             requests:
               cpu: "250m"

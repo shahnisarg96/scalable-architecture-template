@@ -16,6 +16,7 @@
         "helmet": "6.0.1",
         "http-proxy-middleware": "2.0.9",
         "jsonwebtoken": "9.0.0",
+        "kafkajs": "^2.2.4",
         "rate-limiter-flexible": "2.3.10",
         "ss-api-gateway": "file:",
         "swagger-ui-express": "^5.0.1",

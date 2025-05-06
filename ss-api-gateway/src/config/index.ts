@@ -27,4 +27,8 @@ export const config = {
   COURSE_SERVICE_URL: process.env.COURSE_SERVICE_URL || 'http://course-service:8083/',
   FACULTY_SERVICE_URL: process.env.FACULTY_SERVICE_URL || 'http://faculty-service:8084/',
   ENROLLMENT_SERVICE_URL: process.env.ENROLLMENT_SERVICE_URL || 'http://enrollment-service:8085/',
+
+  KAFKA_URL: process.env.KAFKA_URL || 'kafka.ums.svc.cluster.local:9092',
+  KAFKA_CLIENT_ID: process.env.KAFKA_CLIENT_ID || 'api-gateway',
+  KAFKA_TOPIC: process.env.KAFKA_TOPIC || 'app-logs',
 };

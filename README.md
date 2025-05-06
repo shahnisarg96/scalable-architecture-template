@@ -1,6 +1,6 @@
 # Scalable Services Bundle
 
-A microservices-based architecture designed to handle scalable and modular services for a university management system. This project includes services for authentication, student management, faculty management, course management, and enrollment, all orchestrated through an API Gateway.
+A microservices-based architecture designed to handle scalable and modular services for a university management system. This project includes services for authentication, student management, faculty management, course management, and enrollment, all orchestrated through an API Gateway. Additionally, Kafka is integrated for logging and event-driven communication.
 
 ---
 
@@ -9,6 +9,7 @@ A microservices-based architecture designed to handle scalable and modular servi
 - [Features](#features)
 - [Architecture](#architecture)
 - [Services](#services)
+- [Kafka Integration](#kafka-integration)
 - [Setup and Installation](#setup-and-installation)
 - [Troubleshooting](#troubleshooting)
 - [API Documentation](#api-documentation)
@@ -17,20 +18,21 @@ A microservices-based architecture designed to handle scalable and modular servi
 
 ## Overview
 
-The **Scalable Services Bundle** is a modular and scalable microservices architecture designed for managing various aspects of a university system. Each service is independently deployable and communicates with others through REST APIs. The API Gateway acts as a single entry point for all client requests, providing routing, authentication, and rate-limiting functionalities.
+The **Scalable Services Bundle** is a modular and scalable microservices architecture designed for managing various aspects of a university system. Each service is independently deployable and communicates with others through REST APIs. The API Gateway acts as a single entry point for all client requests, providing routing, authentication, rate-limiting, and logging functionalities.
 
 ---
 
 ## Features
 
 - **Microservices Architecture**: Independent services for authentication, students, faculty, courses, and enrollment.
-- **API Gateway**: Centralized routing, authentication, and rate-limiting.
+- **API Gateway**: Centralized routing, authentication, rate-limiting, and logging.
+- **Kafka Integration**: Event-driven communication for logging and audit purposes.
 - **Database Integration**: PostgreSQL as the primary database for all services.
 - **Authentication**: JWT-based authentication for secure access.
 - **Scalability**: Each service can be scaled independently.
-- **Dockerized Deployment**: Easy containerized deployment using Docker and Docker Compose.
+- **Dockerized Deployment**: Easy containerized deployment using Docker and Kubernetes.
 - **Rate Limiting**: Protects services from abuse.
-- **Logging and Monitoring**: Centralized logging and health checks for all services.
+- **Logging and Monitoring**: Centralized logging using Kafka and audit logs.
 
 ---
 
@@ -39,8 +41,8 @@ The **Scalable Services Bundle** is a modular and scalable microservices archite
 The project follows a microservices architecture with the following components:
 
 1. **API Gateway**:
-   - Handles routing, authentication, and rate-limiting.
-   - Proxies requests to downstream services.
+   - Handles routing, authentication, rate-limiting, and logging.
+   - Sends logs to Kafka for centralized logging.
 
 2. **Authentication Service**:
    - Manages user signup, login, and JWT token generation.
@@ -52,10 +54,19 @@ The project follows a microservices architecture with the following components:
    - Manages faculty data and their course assignments.
 
 5. **Course Service**:
-   - Handles course data and metadata.
+   - Handles CRUD operations for course data.
 
 6. **Enrollment Service**:
    - Manages student enrollments in courses.
+
+7. **Audit Service**:
+   - Consumes logs from Kafka and writes them to a persistent log file.
+
+8. **Kafka**:
+   - Acts as the message broker for event-driven communication and logging.
+
+9. **PostgreSQL Database**:
+   - Each microservice has its own database schema for isolation.
 
 ---
 
@@ -97,7 +108,25 @@ The project follows a microservices architecture with the following components:
   - `GET /enrollment/student/:studentId`: Get all courses for a student.
   - `GET /enrollment/course/:courseId`: Get all students enrolled in a course.
 
+### 6. **Audit Service**
+- **Functionality**:
+  - Consumes logs from the Kafka topic (`app-logs`).
+  - Writes logs to a persistent log file located at `/app/logs/audit.log`.
+
 ---
+
+## Kafka Integration
+
+### Producer: API Gateway
+- The API Gateway sends logs to a Kafka topic (`app-logs`) using a Kafka producer.
+- Logs include request and response details for all API calls.
+
+### Consumer: Audit Service
+- The Audit Service consumes logs from the Kafka topic (`app-logs`) and writes them to a persistent log file.
+- Logs are stored in a directory mounted on a persistent volume.
+
+---
+
 
 ## Setup and Installation
 
@@ -252,6 +281,20 @@ This section provides step-by-step instructions to set up Minikube and `kubectl`
    - If deployment fails, re-run the script:
      ```bash
      [deploy.sh](http://_vscodecontentref_/2)
+     ```
+
+## Verifying Kafka Integration
+
+1. **Check Kafka Logs**:
+   - Verify that the API Gateway is producing logs to the Kafka topic:
+     ```bash
+     kubectl logs <api-gateway-pod-name>
+     ```
+
+2. **Check Audit Logs**:
+   - Verify that the Audit Service is consuming logs and writing them to the file:
+     ```bash
+     kubectl exec -it <audit-service-pod-name> -- cat /app/logs/audit.log
      ```
 
 ---

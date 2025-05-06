@@ -29,60 +29,90 @@ services:
       " ]
     restart: "no"
 
-  # auth-service:
-  #   build: ./ss-auth-service
-  #   expose:
-  #     - "8081"    
-  #   environment:
-  #     - DATABASE_URL=postgresql://postgres:root@postgres:5432/authdb
-  #   depends_on:
-  #     - db-init
-  #   command: >
-  #     sh -c "
-  #     sleep 5 &&
-  #     npm run prisma:deploy &&
-  #     npm run prisma:seed &&
-  #     npm run start
-  #     "
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
 
-  # student-service:
-  #   build: ./UMS-Student-Service
-  #   expose:
-  #     - "8082"
-  #   depends_on:
-  #     - db-init
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_HOURS: 24
 
-  # course-service:
-  #   build: ./UMS-Course-Service
-  #   expose:
-  #     - "8083"
-  #   depends_on:
-  #     - db-init
+  auth-service:
+    build: ./ss-auth-service
+    expose:
+      - "8081"    
+    environment:
+      - DATABASE_URL=postgresql://postgres:root@postgres:5432/authdb
+    depends_on:
+      - db-init
+    command: >
+      sh -c "
+      sleep 5 &&
+      npm run prisma:deploy &&
+      npm run prisma:seed &&
+      npm run start
+      "
 
-  # faculty-service:
-  #   build: ./UMS-Faculty-Service
-  #   expose:
-  #     - "8084"
-  #   depends_on:
-  #     - db-init
+  student-service:
+    build: ./UMS-Student-Service
+    expose:
+      - "8082"
+    depends_on:
+      - db-init
 
-  # enrollment-service:
-  #   build: ./UMS-Enrollment-Service
-  #   expose:
-  #     - "8085"
-  #   depends_on:
-  #     - db-init
+  course-service:
+    build: ./UMS-Course-Service
+    expose:
+      - "8083"
+    depends_on:
+      - db-init
 
-  # api-gateway:
-  #   build: ./ss-api-gateway
-  #   ports:
-  #     - "8080:8080"
-  #   depends_on:
-  #     - db-init
-  #     - student-service
-  #     - faculty-service
-  #     - course-service
-  #     - enrollment-service
+  faculty-service:
+    build: ./UMS-Faculty-Service
+    expose:
+      - "8084"
+    depends_on:
+      - db-init
+
+  enrollment-service:
+    build: ./UMS-Enrollment-Service
+    expose:
+      - "8085"
+    depends_on:
+      - db-init
+
+  api-gateway:
+    build: ./ss-api-gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db-init
+      - student-service
+      - faculty-service
+      - course-service
+      - enrollment-service
+
+  audit-service:
+    build: ./ss-audit-service
+    expose:
+      - "8086"
 
 volumes:
   pgdata:
