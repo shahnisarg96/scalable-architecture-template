@@ -178,7 +178,7 @@ This section provides step-by-step instructions to set up Minikube and `kubectl`
 3. **Clone the Repository**:
    - Clone the project repository to your local machine:
      ```bash
-     git clone https://github.com/2023tm93733/Scalable-Services-Assignment.git
+     git clone https://github.com/shahnisarg96/scalable-architecture-template.git
      cd scalable-services-bundle
      ```
 
